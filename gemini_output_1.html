@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>나만의 영화 티어리스트</title>
+    <style>
+        :root {
+            --bg-color: #1a1a1a;
+            --card-color: #2d2d2d;
+            --text-color: #ffffff;
+            --accent-color: #e50914;
+        }
+
+        body {
+            font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        header {
+            width: 100%;
+            max-width: 1000px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+
+        .user-section {
+            display: flex;
+            gap: 10px;
+        }
+
+        button {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: 0.3s;
+        }
+
+        .btn-login { background-color: var(--accent-color); color: white; }
+        .btn-save { background-color: #2ecc71; color: white; }
+        button:hover { opacity: 0.8; }
+
+        /* 티어 테이블 스타일 */
+        .tier-container {
+            width: 100%;
+            max-width: 1000px;
+            border: 2px solid #444;
+            margin-bottom: 30px;
+        }
+
+        .tier-row {
+            display: flex;
+            min-height: 120px;
+            border-bottom: 1px solid #444;
+            background-color: #111;
+        }
+
+        .tier-label {
+            width: 120px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 1.2rem;
+            color: #000;
+            text-align: center;
+            padding: 10px;
+        }
+
+        .tier-dropzone {
+            flex-grow: 1;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            padding: 10px;
+            min-width: 200px;
+        }
+
+        /* 티어별 색상 */
+        .tier-life { background-color: #ff7f7f; }
+        .tier-good { background-color: #ffbf7f; }
+        .tier-soso { background-color: #ffff7f; }
+        .tier-bad  { background-color: #7f7f7f; }
+
+        /* 영화 아이템 스타일 */
+        .movie-pool {
+            width: 100%;
+            max-width: 1000px;
+            background-color: var(--card-color);
+            padding: 20px;
+            border-radius: 8px;
+            min-height: 150px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .movie-card {
+            width: 100px;
+            height: 150px;
+            background-color: #444;
+            border-radius: 4px;
+            cursor: grab;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+        }
+
+        .movie-card img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .movie-card:active { cursor: grabbing; }
+
+        .movie-title {
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+            background: rgba(0,0,0,0.7);
+            font-size: 0.8rem;
+            text-align: center;
+            padding: 4px 0;
+        }
+
+        .drag-over {
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>🎬 영화 티어리스트</h1>
+        <div class="user-section">
+            <span id="user-display">로그인이 필요합니다</span>
+            <button class="btn-login" onclick="login()">로그인</button>
+            <button class="btn-save" onclick="saveData()">저장하기</button>
+        </div>
+    </header>
+
+    <div class="tier-container">
+        <div class="tier-row">
+            <div class="tier-label tier-life">인생 영화</div>
+            <div class="tier-dropzone" id="tier-life" ondrop="drop(event)" ondragover="allowDrop(event)" ondragleave="dragLeave(event)"></div>
+        </div>
+        <div class="tier-row">
+            <div class="tier-label tier-good">추천함</div>
+            <div class="tier-dropzone" id="tier-good" ondrop="drop(event)" ondragover="allowDrop(event)" ondragleave="dragLeave(event)"></div>
+        </div>
+        <div class="tier-row">
+            <div class="tier-label tier-soso">보통</div>
+            <div class="tier-dropzone" id="tier-soso" ondrop="drop(event)" ondragover="allowDrop(event)" ondragleave="dragLeave(event)"></div>
+        </div>
+        <div class="tier-row">
+            <div class="tier-label tier-bad">보지 마</div>
+            <div class="tier-dropzone" id="tier-bad" ondrop="drop(event)" ondragover="allowDrop(event)" ondragleave="dragLeave(event)"></div>
+        </div>
+    </div>
+
+    <h3>🎥 영화 보관함</h3>
+    <div class="movie-pool" id="movie-pool" ondrop="drop(event)" ondragover="allowDrop(event)" ondragleave="dragLeave(event)">
+        <!-- 영화 카드들 -->
+        <div class="movie-card" id="movie-1" draggable="true" ondragstart="drag(event)">
+            <img src="https://picsum.photos/seed/movie1/100/150" alt="영화1">
+            <div class="movie-title">기생충</div>
+        </div>
+        <div class="movie-card" id="movie-2" draggable="true" ondragstart="drag(event)">
+            <img src="https://picsum.photos/seed/movie2/100/150" alt="영화2">
+            <div class="movie-title">올드보이</div>
+        </div>
+        <div class="movie-card" id="movie-3" draggable="true" ondragstart="drag(event)">
+            <img src="https://picsum.photos/seed/movie3/100/150" alt="영화3">
+            <div class="movie-title">괴물</div>
+        </div>
+        <div class="movie-card" id="movie-4" draggable="true" ondragstart="drag(event)">
+            <img src="https://picsum.photos/seed/movie4/100/150" alt="영화4">
+            <div class="movie-title">헤어질 결심</div>
+        </div>
+    </div>
+
+    <script>
+        let currentUser = "";
+
+        // 드래그 앤 드롭 로직
+        function allowDrop(ev) {
+            ev.preventDefault();
+            ev.currentTarget.classList.add('drag-over');
+        }
+
+        function dragLeave(ev) {
+            ev.currentTarget.classList.remove('drag-over');
+        }
+
+        function drag(ev) {
+            ev.dataTransfer.setData("text", ev.target.id);
+        }
+
+        function drop(ev) {
+            ev.preventDefault();
+            ev.currentTarget.classList.remove('drag-over');
+            var data = ev.dataTransfer.getData("text");
+            var draggedElement = document.getElementById(data);
+            
+            // 드롭 대상이 dropzone인지 확인 (자식 요소인 이미지 등에 드롭되는 경우 방지)
+            let target = ev.target;
+            while (target && !target.classList.contains('tier-dropzone') && !target.classList.contains('movie-pool')) {
+                target = target.parentElement;
+            }
+            
+            if (target) {
+                target.appendChild(draggedElement);
+            }
+        }
+
+        // 로그인 (사용자 이름 입력)
+        function login() {
+            const name = prompt("사용자 이름을 입력하세요:");
+            if (name) {
+                currentUser = name;
+                document.getElementById('user-display').innerText = `반갑습니다, ${name}님!`;
+                loadData();
+            }
+        }
+
+        // 데이터 저장 (LocalStorage)
+        function saveData() {
+            if (!currentUser) {
+                alert("로그인이 필요합니다!");
+                return;
+            }
+
+            const data = {
+                'tier-life': Array.from(document.getElementById('tier-life').children).map(c => c.id),
+                'tier-good': Array.from(document.getElementById('tier-good').children).map(c => c.id),
+                'tier-soso': Array.from(document.getElementById('tier-soso').children).map(c => c.id),
+                'tier-bad': Array.from(document.getElementById('tier-bad').children).map(c => c.id),
+                'movie-pool': Array.from(document.getElementById('movie-pool').children).map(c => c.id)
+            };
+
+            localStorage.setItem(`movieTier_${currentUser}`, JSON.stringify(data));
+            alert("성공적으로 저장되었습니다!");
+        }
+
+        // 데이터 불러오기
+        function loadData() {
+            const savedData = localStorage.getItem(`movieTier_${currentUser}`);
+            if (!savedData) return;
+
+            const data = JSON.parse(savedData);
+            for (const [zoneId, movieIds] of Object.entries(data)) {
+                const zone = document.getElementById(zoneId);
+                movieIds.forEach(id => {
+                    const movie = document.getElementById(id);
+                    if (movie) zone.appendChild(movie);
+                });
+            }
+        }
+    </script>
+</body>
+</html>
